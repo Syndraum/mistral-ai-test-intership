@@ -4,8 +4,27 @@ from .deltaEncoding import encode
 MAX_MODEL_LEN = 8192
 
 class SentenceCorrector:
+	"""A sentence correction system using a language model.
+    
+    This class provides functionality to correct sentences in a target language
+    using the Qwen3-0.6B model. It supports batch processing and different
+    output formats including delta encoding.
+    
+    Attributes:
+        target_language: The language to correct sentences in.
+        format: The output format ("sentence" or "encode").
+    """
 
 	def __init__(self, target_language: str = "english", format: str = "sentence"):
+		"""Initialize the SentenceCorrector.
+        
+        Sets up the language model and sampling parameters for sentence correction.
+        
+        Args:
+            target_language: The target language for corrections. Defaults to "english".
+            format: The output format for corrections. Either "sentence" for full
+                corrected text or "encode" for delta encoding. Defaults to "sentence".
+        """
 		self._llm = LLM(
 			model="Qwen/Qwen3-0.6B", 
 			max_model_len=MAX_MODEL_LEN, 
@@ -19,6 +38,18 @@ class SentenceCorrector:
 		self.setFormat(format)
 	
 	def _create_chat(self, sentence: str) -> list[dict]:
+		"""Create a chat conversation template for correction.
+        
+        Builds the conversation structure needed by the language model to
+        perform sentence correction.
+        
+        Args:
+            sentence: The sentence to be corrected.
+        
+        Returns:
+            A list of message dictionaries containing the system prompt,
+            assistant greeting, and user's sentence.
+        """
 		chat = [
 			{
 				"role": "system",
@@ -36,11 +67,37 @@ class SentenceCorrector:
 		return chat
 	
 	def apply_format(self, orginal: str, corrected: str):
+		"""Apply the configured output format to the correction.
+        
+        Transforms the corrected sentence according to the format setting.
+        
+        Args:
+            original: The original uncorrected sentence.
+            corrected: The corrected sentence from the model.
+        
+        Returns:
+            The corrected sentence in the configured format. Returns the
+            corrected sentence as-is if format is "sentence", or a delta
+            encoding if format is "encode".
+        """
 		if self._format_func == None:
 			return corrected
 		return self._format_func(orginal, corrected)
 
 	def correct(self, sentences: str | list[str]) -> list[str]:
+		"""Correct one or multiple sentences.
+        
+        Processes sentences through the language model to generate corrections.
+        Supports both single sentence strings and batch processing of multiple
+        sentences.
+        
+        Args:
+            sentences: A single sentence string or a list of sentences to correct.
+        
+        Returns:
+            A list of corrected sentences in the configured output format.
+            Even if a single sentence is provided, the return value is a list.
+        """
 		if isinstance(sentences, str):
 			sentences = [sentences]
 		chats = [ self._create_chat(s) for s in sentences ]
@@ -55,5 +112,13 @@ class SentenceCorrector:
 		return corrected
 	
 	def setFormat(self, format: str):
+		"""Set the output format for corrections.
+        
+        Changes how correction results are returned.
+        
+        Args:
+            format: The desired output format. Use "sentence" for full
+                corrected text or "encode" for delta encoding representation.
+        """
 		self.format = format
 		self._format_func = encode if format == "encode" else None
