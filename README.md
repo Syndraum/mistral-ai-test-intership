@@ -163,3 +163,16 @@ Each tuple in the delta contains:
 - Start position in the original string
 - Length of the section to replace
 - Replacement text
+
+## How It Works
+
+The Sentence Corrector uses the Qwen3-0.6B language model to analyze and correct sentences:
+
+1. **Input Processing**: Sentences are formatted into a chat template
+2. **Model Inference**: The language model generates corrections
+3. **Output Formatting**: Results are returned in the specified format (full sentence or delta encoding)
+
+## Acknowledgments
+
+- Built with [vLLM](https://docs.vllm.ai/en/stable/index.html)
+- Powered by [Qwen3-0.6B](https://huggingface.co/Qwen/Qwen3-0.6B) model
