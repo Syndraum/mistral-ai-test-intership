@@ -36,11 +36,11 @@ This command will:
 
 The installation may take several minutes depending on your internet connection, as it needs to download the language model and various Python packages.
 
-## Before run
+## Post-Installation
 
 ### Activating the Virtual Environment
 
-Before runing any code, you need to activate the virtual environment. This ensures that you're using the correct Python interpreter and packages.
+Before running any code, you need to activate the virtual environment. This ensures that you're using the correct Python interpreter and packages.
 
 Activate the virtual environment:
 
