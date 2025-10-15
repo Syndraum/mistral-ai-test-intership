@@ -66,6 +66,19 @@ class SentenceCorrector:
 		]
 		return chat
 	
+	def _get_format_func(self, format: str):
+		"""Get the formatting function based on the specified format.
+		
+		Determines the appropriate function to apply to the corrected sentence
+		based on the desired output format.
+		
+		Args:
+			format: The output format ("sentence" or "encode").
+		Returns:
+			The formatting function to apply, or None for no formatting.
+		"""
+		return encode if format == "encode" else None	
+
 	def apply_format(self, orginal: str, corrected: str):
 		"""Apply the configured output format to the correction.
         
@@ -121,4 +134,4 @@ class SentenceCorrector:
                 corrected text or "encode" for delta encoding representation.
         """
 		self.format = format
-		self._format_func = encode if format == "encode" else None
+		self._format_func = self._get_format_func(format)
