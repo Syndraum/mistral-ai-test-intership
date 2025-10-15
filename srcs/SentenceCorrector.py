@@ -1,5 +1,6 @@
 from vllm import LLM, SamplingParams
 from .deltaEncoding import encode
+from .FormatManager import FormatManager, FORMAT_SENTENCE
 
 MAX_MODEL_LEN = 8192
 
@@ -12,10 +13,10 @@ class SentenceCorrector:
 		
 	Attributes:
 		target_language: The language to correct sentences in.
-		format: The output format ("sentence" or "encode").
+		format: The output format.
 	"""
 
-	def __init__(self, target_language: str = "english", format: str = "sentence"):
+	def __init__(self, target_language: str = "english", format: str = FORMAT_SENTENCE):
 		"""Initialize the SentenceCorrector.
 		
 		Sets up the language model and sampling parameters for sentence correction.
@@ -35,9 +36,10 @@ class SentenceCorrector:
 			stop=["<|endoftext|>", "<|im_end|>"]
 		)
 		self.target_language = target_language
-		self.setFormat(format)
+		self._format_manager = FormatManager()
+		self.format = format
 	
-	def _create_chat(self, sentence: str, target_language: str = None) -> list[dict]:
+	def _create_chat(self, sentence: str, language: str = None) -> list[dict]:
 		"""Create a chat conversation template for correction.
 		
 		Builds the conversation structure needed by the language model to
@@ -45,13 +47,13 @@ class SentenceCorrector:
 		
 		Args:
 			sentence: The sentence to be corrected.
-			target_language: Optionnel, language to use for this chat.
+			language: Optionnel, language to use for this chat.
 		
 		Returns:
 			A list of message dictionaries containing the system prompt,
 			assistant greeting, and user's sentence.
 		"""
-		lang = target_language if target_language is not None else self.target_language
+		lang = language if language is not None else self.target_language
 		chat = [
 			{
 				"role": "system",
@@ -66,20 +68,7 @@ class SentenceCorrector:
 				"content": f"{sentence}"
 			}
 		]
-		return chat
-	
-	def _get_format_func(self, format: str):
-		"""Get the formatting function based on the specified format.
-		
-		Determines the appropriate function to apply to the corrected sentence
-		based on the desired output format.
-		
-		Args:
-			format: The output format ("sentence" or "encode").
-		Returns:
-			The formatting function to apply, or None for no formatting.
-		"""
-		return encode if format == "encode" else None	
+		return chat	
 
 	def apply_format(self, original: str, corrected: str, format: str = None) -> str:
 		"""Apply the configured output format to the correction.
@@ -95,10 +84,9 @@ class SentenceCorrector:
 			corrected sentence as-is if format is "sentence", or a delta
 			encoding if format is "encode".
 		"""
-		format_func = self._get_format_func(format) if format is not None else self._format_func
-		if format_func == None:
-			return corrected
-		return format_func(original, corrected)
+		fmt = format if format is not None else self.format
+		formatter = self._format_manager.get_formatter(fmt)
+		return formatter(original, corrected)
 
 	def correct(self, sentence: str, target_language: str = None, format: str = None) -> str:
 		"""Correct a single sentence.
@@ -114,9 +102,9 @@ class SentenceCorrector:
 		Returns:
 			The corrected sentence in the configured output format.
 		"""
-		return self.correct([sentence], target_language, format)[0]
+		return self.correct_batch([sentence], target_language, format)[0]
 
-	def correct_multiple(self, sentences: list[str], target_language: str = None, format: str = None) -> list[str]:
+	def correct_batch(self, sentences: list[str], target_language: str = None, format: str = None) -> list[str]:
 		"""Correct one or multiple sentences.
 		
 		Processes sentences through the language model to generate corrections.
@@ -144,15 +132,3 @@ class SentenceCorrector:
 		)
 		corrected = [ self.apply_format(sentences[idx], output.outputs[0].text, fmt) for idx, output in enumerate(outputs) ]
 		return corrected
-	
-	def setFormat(self, format: str):
-		"""Set the output format for corrections.
-		
-		Changes how correction results are returned.
-		
-		Args:
-			format: The desired output format. Use "sentence" for full
-				corrected text or "encode" for delta encoding representation.
-		"""
-		self.format = format
-		self._format_func = self._get_format_func(format)
