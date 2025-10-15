@@ -31,8 +31,8 @@ def main(args: Namespace):
 		format=args.format
 	)
 
-	corrections = corrector.correct(args.sentence)
-	print(f"{corrections[0]}")
+	correction = corrector.correct(args.sentence)
+	print(f"{correction}")
 
 if __name__ == "__main__":
 	args = parser.parse_args()
