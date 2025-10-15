@@ -79,7 +79,7 @@ class SentenceCorrector:
 		"""
 		return encode if format == "encode" else None	
 
-	def apply_format(self, orginal: str, corrected: str):
+	def apply_format(self, original: str, corrected: str):
 		"""Apply the configured output format to the correction.
         
         Transforms the corrected sentence according to the format setting.
@@ -95,7 +95,7 @@ class SentenceCorrector:
         """
 		if self._format_func == None:
 			return corrected
-		return self._format_func(orginal, corrected)
+		return self._format_func(original, corrected)
 
 	def correct(self, sentences: str | list[str]) -> list[str]:
 		"""Correct one or multiple sentences.
