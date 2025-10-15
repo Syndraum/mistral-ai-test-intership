@@ -117,9 +117,48 @@ Output:
 Hello everyone
 ```
 
+### FastAPI
+
+You can interact with the Sentence Corrector via a REST API using FastAPI. This allows you to send HTTP requests for sentence correction from any client (web, mobile, or other services).
+
+Start the FastAPI server:
+
+```bash
+make serve
+```
+
+#### API Endpoint
+
+- ##### POST `correct`
+
+Request body (JSON):
+
+```json
+{
+  "sentences": "This are a test sentense",
+  "language": "english",
+  "format": "sentence"
+}
+```
+
+- `sentences`: A string or list of strings to correct.
+- `language`: Optinal, Target language (default: "english").
+- `format`: Optinal, Output format (default: "sentence").
+
+Response (JSON):
+
+```json
+{
+  "corrections": "This is a test sentence",
+  "language": "english",
+  "format": "sentence"
+}
+```
+
 ### SentenceCorrector API
 
 Use the `SentenceCorrector` class directly in your Python code:
+
 
 ```python
 from srcs.SentenceCorrector import SentenceCorrector
