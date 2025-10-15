@@ -100,7 +100,23 @@ class SentenceCorrector:
 			return corrected
 		return format_func(original, corrected)
 
-	def correct(self, sentences: str | list[str], target_language: str = None, format: str = None) -> list[str]:
+	def correct(self, sentence: str, target_language: str = None, format: str = None) -> str:
+		"""Correct a single sentence.
+		
+		Processes a single sentence through the language model to generate
+		a correction.
+
+		Args:
+			sentence: The sentence to correct.
+			target_language: Optionnel, language to use for this correction.
+			format: Optionnel, output format for this correction.
+
+		Returns:
+			The corrected sentence in the configured output format.
+		"""
+		return self.correct([sentence], target_language, format)[0]
+
+	def correct_multiple(self, sentences: list[str], target_language: str = None, format: str = None) -> list[str]:
 		"""Correct one or multiple sentences.
 		
 		Processes sentences through the language model to generate corrections.
@@ -108,7 +124,7 @@ class SentenceCorrector:
 		sentences.
 		
 		Args:
-			sentences: A single sentence string or a list of sentences to correct.
+			sentences: A list of sentences to correct.
 			target_language: Optionnel, override the target language for this correction.
 			format: Optionnel, override the output format for this correction.
 
@@ -118,10 +134,6 @@ class SentenceCorrector:
 		"""
 		lang = target_language if target_language is not None else self.target_language
 		fmt = format if format is not None else self.format
-		# format_func = self._get_format_func(fmt) if fmt is not None else self._format_func
-
-		if isinstance(sentences, str):
-			sentences = [sentences]
 		chats = [ self._create_chat(s, lang) for s in sentences ]
 		outputs = self._llm.chat(
 			chats,
@@ -131,7 +143,6 @@ class SentenceCorrector:
 			continue_final_message=False
 		)
 		corrected = [ self.apply_format(sentences[idx], output.outputs[0].text, fmt) for idx, output in enumerate(outputs) ]
-		# corrected = [ (format_func(sentences[idx], output.outputs[0].text) if format_func else output.outputs[0].text) for idx, output in enumerate(outputs) ]
 		return corrected
 	
 	def setFormat(self, format: str):
